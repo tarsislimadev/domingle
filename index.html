@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Video Call</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            max-width: 1200px;
+            width: 90%;
+            min-height: 600px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .video-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            min-height: 400px;
+        }
+
+        .video-wrapper {
+            position: relative;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 3px solid #e0e0e0;
+        }
+
+        .video-wrapper.active {
+            border-color: #4CAF50;
+        }
+
+        .video-wrapper.remote {
+            border-color: #2196F3;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: #000;
+        }
+
+        .video-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #2196F3;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .connection-info {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .connection-info h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .status-indicator.connected {
+            background: #4CAF50;
+        }
+
+        .status-indicator.connecting {
+            background: #ff9800;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .log {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+        }
+
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎥 WebRTC Video Call</h1>
+            <p>Start a video call with another user</p>
+        </div>
+
+        <div id="error-message" class="error hidden"></div>
+        <div id="success-message" class="success hidden"></div>
+
+        <div class="connection-info">
+            <h3>Connection Status</h3>
+            <div class="status">
+                <div id="local-status" class="status-indicator"></div>
+                <span>Local Stream: <span id="local-status-text">Not started</span></span>
+            </div>
+            <div class="status">
+                <div id="remote-status" class="status-indicator"></div>
+                <span>Remote Connection: <span id="remote-status-text">Not connected</span></span>
+            </div>
+        </div>
+
+        <div class="video-container">
+            <div class="video-wrapper active" id="local-video-wrapper">
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div class="video-label">You</div>
+            </div>
+            <div class="video-wrapper remote" id="remote-video-wrapper">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div class="video-label">Remote</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn" class="btn btn-primary">
+                📹 Start Call
+            </button>
+            <button id="callBtn" class="btn btn-secondary" disabled>
+                📞 Call
+            </button>
+            <button id="answerBtn" class="btn btn-secondary hidden" disabled>
+                ✅ Answer
+            </button>
+            <button id="hangupBtn" class="btn btn-danger" disabled>
+                📴 Hang Up
+            </button>
+            <button id="muteBtn" class="btn btn-secondary" disabled>
+                🔇 Mute
+            </button>
+            <button id="videoBtn" class="btn btn-secondary" disabled>
+                📹 Video Off
+            </button>
+        </div>
+
+        <div class="log" id="log">
+            <div>WebRTC Call Log:</div>
+        </div>
+    </div>
+
+    <script>
+        class WebRTCCall {
+            constructor() {
+                this.localStream = null;
+                this.remoteStream = null;
+                this.peerConnection = null;
+                this.isInitiator = false;
+                this.isMuted = false;
+                this.isVideoOff = false;
+
+                // Configuration for STUN/TURN servers
+                this.configuration = {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ]
+                };
+
+                this.initializeElements();
+                this.setupEventListeners();
+                this.log('WebRTC Call initialized');
+            }
+
+            initializeElements() {
+                this.elements = {
+                    localVideo: document.getElementById('localVideo'),
+                    remoteVideo: document.getElementById('remoteVideo'),
+                    startBtn: document.getElementById('startBtn'),
+                    callBtn: document.getElementById('callBtn'),
+                    answerBtn: document.getElementById('answerBtn'),
+                    hangupBtn: document.getElementById('hangupBtn'),
+                    muteBtn: document.getElementById('muteBtn'),
+                    videoBtn: document.getElementById('videoBtn'),
+                    localStatus: document.getElementById('local-status'),
+                    localStatusText: document.getElementById('local-status-text'),
+                    remoteStatus: document.getElementById('remote-status'),
+                    remoteStatusText: document.getElementById('remote-status-text'),
+                    log: document.getElementById('log'),
+                    errorMessage: document.getElementById('error-message'),
+                    successMessage: document.getElementById('success-message')
+                };
+            }
+
+            setupEventListeners() {
+                this.elements.startBtn.addEventListener('click', () => this.startLocalStream());
+                this.elements.callBtn.addEventListener('click', () => this.startCall());
+                this.elements.answerBtn.addEventListener('click', () => this.answerCall());
+                this.elements.hangupBtn.addEventListener('click', () => this.hangup());
+                this.elements.muteBtn.addEventListener('click', () => this.toggleMute());
+                this.elements.videoBtn.addEventListener('click', () => this.toggleVideo());
+            }
+
+            log(message) {
+                const timestamp = new Date().toLocaleTimeString();
+                this.elements.log.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+                this.elements.log.scrollTop = this.elements.log.scrollHeight;
+                console.log(`[WebRTC] ${message}`);
+            }
+
+            showError(message) {
+                this.elements.errorMessage.textContent = message;
+                this.elements.errorMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    this.elements.errorMessage.classList.add('hidden');
+                }, 5000);
+            }
+
+            showSuccess(message) {
+                this.elements.successMessage.textContent = message;
+                this.elements.successMessage.classList.remove('hidden');
+                setTimeout(() => {
+                    this.elements.successMessage.classList.add('hidden');
+                }, 3000);
+            }
+
+            updateStatus(element, text, connected = false) {
+                element.textContent = text;
+                const indicator = element.id === 'local-status-text' ? 
+                    this.elements.localStatus : this.elements.remoteStatus;
+                indicator.className = `status-indicator ${connected ? 'connected' : ''}`;
+            }
+
+            async startLocalStream() {
+                try {
+                    this.log('Requesting local stream...');
+                    this.localStream = await navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: true
+                    });
+
+                    this.elements.localVideo.srcObject = this.localStream;
+                    this.updateStatus(this.elements.localStatusText, 'Connected', true);
+                    
+                    this.elements.startBtn.disabled = true;
+                    this.elements.callBtn.disabled = false;
+                    this.elements.muteBtn.disabled = false;
+                    this.elements.videoBtn.disabled = false;
+
+                    this.log('Local stream started successfully');
+                    this.showSuccess('Camera and microphone access granted!');
+                } catch (error) {
+                    this.log(`Error accessing media devices: ${error.message}`);
+                    this.showError('Failed to access camera/microphone. Please check permissions.');
+                }
+            }
+
+            async startCall() {
+                try {
+                    this.isInitiator = true;
+                    this.log('Starting call as initiator...');
+                    
+                    await this.createPeerConnection();
+                    this.localStream.getTracks().forEach(track => {
+                        this.peerConnection.addTrack(track, this.localStream);
+                    });
+
+                    const offer = await this.peerConnection.createOffer();
+                    await this.peerConnection.setLocalDescription(offer);
+                    
+                    this.log('Call offer created');
+                    this.showSuccess('Call initiated! Waiting for answer...');
+                    
+                    this.elements.callBtn.disabled = true;
+                    this.elements.answerBtn.classList.add('hidden');
+                    this.elements.hangupBtn.disabled = false;
+                    
+                    // In a real application, you would send this offer via signaling server
+                    this.log('Offer: ' + JSON.stringify(offer));
+                    
+                } catch (error) {
+                    this.log(`Error starting call: ${error.message}`);
+                    this.showError('Failed to start call');
+                }
+            }
+
+            async answerCall() {
+                try {
+                    this.isInitiator = false;
+                    this.log('Answering call...');
+                    
+                    await this.createPeerConnection();
+                    this.localStream.getTracks().forEach(track => {
+                        this.peerConnection.addTrack(track, this.localStream);
+                    });
+
+                    // In a real application, you would receive the offer from signaling server
+                    // For demo purposes, we'll simulate receiving an offer
+                    this.log('Simulating answer to call...');
+                    
+                    this.elements.answerBtn.disabled = true;
+                    this.elements.callBtn.disabled = true;
+                    this.elements.hangupBtn.disabled = false;
+                    
+                    this.showSuccess('Call answered!');
+                    
+                } catch (error) {
+                    this.log(`Error answering call: ${error.message}`);
+                    this.showError('Failed to answer call');
+                }
+            }
+
+            async createPeerConnection() {
+                this.peerConnection = new RTCPeerConnection(this.configuration);
+                
+                this.peerConnection.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        this.log('ICE candidate: ' + JSON.stringify(event.candidate));
+                        // In a real application, send this candidate via signaling server
+                    }
+                };
+
+                this.peerConnection.ontrack = (event) => {
+                    this.log('Received remote stream');
+                    this.remoteStream = event.streams[0];
+                    this.elements.remoteVideo.srcObject = this.remoteStream;
+                    this.updateStatus(this.elements.remoteStatusText, 'Connected', true);
+                };
+
+                this.peerConnection.onconnectionstatechange = () => {
+                    this.log(`Connection state: ${this.peerConnection.connectionState}`);
+                    if (this.peerConnection.connectionState === 'connected') {
+                        this.showSuccess('Call connected successfully!');
+                    } else if (this.peerConnection.connectionState === 'disconnected' || 
+                               this.peerConnection.connectionState === 'failed') {
+                        this.hangup();
+                    }
+                };
+            }
+
+            hangup() {
+                this.log('Hanging up...');
+                
+                if (this.peerConnection) {
+                    this.peerConnection.close();
+                    this.peerConnection = null;
+                }
+
+                if (this.remoteStream) {
+                    this.remoteStream.getTracks().forEach(track => track.stop());
+                    this.remoteStream = null;
+                }
+
+                this.elements.remoteVideo.srcObject = null;
+                this.updateStatus(this.elements.remoteStatusText, 'Not connected', false);
+                
+                this.elements.callBtn.disabled = false;
+                this.elements.answerBtn.disabled = false;
+                this.elements.answerBtn.classList.add('hidden');
+                this.elements.hangupBtn.disabled = true;
+                
+                this.isInitiator = false;
+                this.log('Call ended');
+            }
+
+            toggleMute() {
+                if (this.localStream) {
+                    const audioTrack = this.localStream.getAudioTracks()[0];
+                    if (audioTrack) {
+                        audioTrack.enabled = !audioTrack.enabled;
+                        this.isMuted = !audioTrack.enabled;
+                        this.elements.muteBtn.textContent = this.isMuted ? '🔊 Unmute' : '🔇 Mute';
+                        this.log(`Audio ${this.isMuted ? 'muted' : 'unmuted'}`);
+                    }
+                }
+            }
+
+            toggleVideo() {
+                if (this.localStream) {
+                    const videoTrack = this.localStream.getVideoTracks()[0];
+                    if (videoTrack) {
+                        videoTrack.enabled = !videoTrack.enabled;
+                        this.isVideoOff = !videoTrack.enabled;
+                        this.elements.videoBtn.textContent = this.isVideoOff ? '📹 Video On' : '📹 Video Off';
+                        this.log(`Video ${this.isVideoOff ? 'disabled' : 'enabled'}`);
+                    }
+                }
+            }
+        }
+
+        // Initialize the WebRTC call when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new WebRTCCall();
+        });
+    </script>
+</body>
+</html>
