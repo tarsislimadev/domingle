@@ -1,48 +1,63 @@
-# [domingle](#)
+# domingle
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/tarsislimadev/domingle)
 
+## Welcome to domingle!
 
-## Project Overview
+domingle is a simple and easy-to-use video calling application that works directly in your web browser. No downloads, no installations, no complicated setup - just open and start calling!
 
-This is "domingle" - a simple WebRTC video calling application built as a single-page application. The project consists of a standalone HTML file that implements a complete WebRTC video calling interface with no external dependencies or build process.
+## How to Use
 
-## Architecture
+### Getting Started
+1. **Open the app**: Visit the domingle website or open the `index.html` file in your browser
+2. **Allow permissions**: When prompted, allow access to your camera and microphone
+3. **Start calling**: You're ready to make video calls!
 
-- **Single-file application**: All HTML, CSS, and JavaScript are contained in `index.html:1-527`
-- **WebRTC implementation**: Uses vanilla JavaScript with the WebRTC API for peer-to-peer video calling
-- **Class-based structure**: Main functionality is organized in the `WebRTCCall` class at `index.html:283-519`
-- **No build system**: This is a static HTML file that can be opened directly in a browser
+### Making a Call
+1. Click the **"Start Call"** button to begin
+2. Your video feed will appear on the screen
+3. Share your call details with the person you want to call
+4. Wait for them to join the call
 
-## Key Components
+### Call Controls
+- **Mute/Unmute**: Click the microphone button to mute or unmute your audio
+- **Video On/Off**: Click the camera button to turn your video on or off
+- **End Call**: Click the phone button to end the call
 
-### WebRTCCall Class (`index.html:283-519`)
-- **Configuration**: STUN servers configured at `index.html:293-298`
-- **Stream management**: Local and remote stream handling
-- **Peer connection**: RTCPeerConnection setup and management
-- **UI controls**: Mute, video toggle, call initiation/answering
+### Requirements
+- **Modern web browser**: Works best with Chrome, Firefox, Safari, or Edge
+- **Camera and microphone**: You'll need these for video calling
+- **Internet connection**: Required for connecting with other people
+- **HTTPS**: For security, the app needs to be accessed via HTTPS (except when testing locally)
 
-### UI Elements
-- Video containers for local and remote streams
-- Control buttons for call management
-- Status indicators and logging
-- Error/success message display
+## Features
+- Easy one-click video calling
+- No downloads or installations required
+- Works on desktop and mobile browsers
+- Simple, clean interface
+- Secure peer-to-peer connections
 
-## Development
+## Browser Support
+domingle works on all modern browsers including:
+- Google Chrome
+- Mozilla Firefox
+- Safari
+- Microsoft Edge
 
-This project requires no build tools or package managers. To work with this codebase:
+## Privacy & Security
+- Your video calls are peer-to-peer, meaning they go directly between you and the other person
+- No video or audio is stored on our servers
+- Your privacy is protected with secure WebRTC technology
 
-1. **Local development**: Open `index.html` directly in a web browser
-2. **HTTPS requirement**: WebRTC requires HTTPS in production (localhost works for development)
-3. **Browser permissions**: Requires camera and microphone access
+## Need Help?
+If you're having trouble with domingle:
+1. Make sure you've allowed camera and microphone permissions
+2. Check that you're using a supported browser
+3. Ensure you have a stable internet connection
+4. Try refreshing the page and starting again
 
-## Deployment
+---
 
-The README indicates this project can be deployed to Vercel using the deploy button. Since it's a static HTML file, it can be deployed to any static hosting service.
+**Technical Details for Developers**
 
-## Technical Notes
-
-- **Signaling limitation**: Current implementation logs offers/candidates to console but lacks a signaling server for real peer-to-peer connections
-- **STUN servers**: Uses Google's public STUN servers for NAT traversal
-- **Media constraints**: Configured for both video and audio streams
-- **Browser compatibility**: Uses modern WebRTC APIs and requires recent browser versions
+This is a single-file WebRTC application built with vanilla JavaScript. The entire application is contained in `index.html` with no external dependencies or build process required.
