@@ -60,8 +60,6 @@ class WebRTCCall {
 
     this.localConnection.on('open', (open) => this.onLocalConnectionOpen(open))
 
-    this.localConnection.on('connection', (connection) => console.log('[local] connection', connection))
-
     this.localConnection.on('call', (call) => console.log('[local] call', call))
 
     this.localConnection.on('close', (close) => console.log('[local] close', close))
@@ -79,24 +77,28 @@ class WebRTCCall {
   createAdminConnection() {
     window.adminConnection = this.adminConnection = this.localConnection.connect(ADMIN_ID)
 
-    this.adminConnection.on('open', (open) => console.log('[admin] open', open))
+    this.adminConnection.on('open', (open) => {
+      console.log('[admin] open', open)
+
+      setInterval(() => {
+        const local = this.localConnection.id
+        const remote = this.remoteConnection?.id
+
+        console.log({ local, remote })
+
+        if (this.adminConnection.open) {
+          this.adminConnection.send({ local, remote })
+        }
+      }, this.TIMEOUT)
+    })
 
     this.adminConnection.on('connection', (connection) => console.log('[admin] connection', connection))
-
-    this.adminConnection.on('call', (call) => console.log('[admin] call', call))
 
     this.adminConnection.on('close', (close) => console.log('[admin] close', close))
 
     this.adminConnection.on('disconnected', (disconnected) => console.log('[admin] disconnected', disconnected))
 
     this.adminConnection.on('error', (error) => console.log('[admin] error', error))
-
-    setInterval(() => {
-      this.adminConnection.send({
-        local: this.localConnection.id,
-        remote: this.remoteConnection?.id
-      })
-    }, this.TIMEOUT)
   }
 
   startRemoteCall() { }
