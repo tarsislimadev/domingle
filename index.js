@@ -1,5 +1,7 @@
 import { Peer } from "https://esm.sh/peerjs@1.5.5?bundle-deps"
 
+import { ADMIN_ID, PREFIX_ID } from './config.js'
+
 class WebRTCCall {
   localStream = null
   remoteStream = null
@@ -54,7 +56,7 @@ class WebRTCCall {
   }
 
   async createLocalConnection() {
-    this.localConnection = new Peer('domeengle-' + Date.now())
+    this.localConnection = new Peer(PREFIX_ID + Date.now())
 
     this.localConnection.on('open', () => this.onLocalConnectionOpen())
   }
@@ -65,7 +67,7 @@ class WebRTCCall {
   }
 
   createAdminConnection() {
-    this.adminConnection = this.localConnection.connect('domeengle-admin')
+    window.adminConnection = this.adminConnection = this.localConnection.connect(ADMIN_ID)
 
     this.adminConnection.on('open', (open) => {
       console.log('[admin] open', open)
