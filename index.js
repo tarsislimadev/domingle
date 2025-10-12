@@ -58,7 +58,17 @@ class WebRTCCall {
   async createLocalConnection() {
     this.localConnection = new Peer(PREFIX_ID + Date.now())
 
-    this.localConnection.on('open', () => this.onLocalConnectionOpen())
+    this.localConnection.on('open', (open) => this.onLocalConnectionOpen(open))
+
+    this.localConnection.on('connection', (connection) => console.log('[local] connection', connection))
+
+    this.localConnection.on('call', (call) => console.log('[local] call', call))
+
+    this.localConnection.on('close', (close) => console.log('[local] close', close))
+
+    this.localConnection.on('disconnected', (disconnected) => console.log('[local] disconnected', disconnected))
+
+    this.localConnection.on('error', (error) => console.log('[local] error', error))
   }
 
   onLocalConnectionOpen() {
@@ -69,13 +79,17 @@ class WebRTCCall {
   createAdminConnection() {
     window.adminConnection = this.adminConnection = this.localConnection.connect(ADMIN_ID)
 
-    this.adminConnection.on('open', (open) => {
-      console.log('[admin] open', open)
-    })
+    this.adminConnection.on('open', (open) => console.log('[admin] open', open))
 
-    this.adminConnection.on('data', (data) => {
-      console.log('[admin] data', data)
-    })
+    this.adminConnection.on('connection', (connection) => console.log('[admin] connection', connection))
+
+    this.adminConnection.on('call', (call) => console.log('[admin] call', call))
+
+    this.adminConnection.on('close', (close) => console.log('[admin] close', close))
+
+    this.adminConnection.on('disconnected', (disconnected) => console.log('[admin] disconnected', disconnected))
+
+    this.adminConnection.on('error', (error) => console.log('[admin] error', error))
 
     setInterval(() => {
       this.adminConnection.send({

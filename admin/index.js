@@ -14,15 +14,15 @@ class MainConnection {
   createConnection() {
     window.localConnection = this.localConnection = new Peer(ADMIN_ID)
 
-    this.localConnection.on('open', () => console.log('[admin] open'))
+    this.localConnection.on('open', (open) => console.log('[local] open', open))
 
-    this.localConnection.on('connection', () => console.log('[admin] connection'))
+    this.localConnection.on('connection', (connection) => console.log('[local] connection', connection))
 
-    this.localConnection.on('disconnected', () => console.log('[admin] disconnected'))
+    this.localConnection.on('disconnected', (disconnected) => console.log('[local] disconnected', disconnected))
 
-    this.localConnection.on('error', () => console.log('[admin] error'))
+    this.localConnection.on('error', (error) => console.log('[local] error', error))
 
-    this.localConnection.on('close', () => console.log('[admin] close'))
+    this.localConnection.on('close', (close) => console.log('[local] close', close))
   }
 
   updateConnectionsList() {
