@@ -14,15 +14,38 @@ class MainConnection {
   createConnection() {
     window.localConnection = this.localConnection = new Peer(ADMIN_ID)
 
-    this.localConnection.on('open', (open) => console.log('[local] open', open))
+    this.localConnection.on('open', (open) => {
+      console.log('[local] open', open)
+      this.updateConnectionsList()
+    })
 
-    this.localConnection.on('connection', (connection) => console.log('[local] connection', connection))
+    this.localConnection.on('connection', (conn) => {
+      console.log('[local] connection', conn)
 
-    this.localConnection.on('disconnected', (disconnected) => console.log('[local] disconnected', disconnected))
+      this.updateConnectionsList()
+
+      conn.on('open', (open) => console.log('[conn] open', open))
+
+      conn.on('data', (data) => console.log('[conn] data', data))
+
+      conn.on('error', (error) => console.log('[conn] error', error))
+
+      conn.on('close', (close) => {
+        console.log('[conn] close', close)
+
+        this.updateConnectionsList()
+      })
+    })
+
+    // this.localConnection.on('disconnected', (disconnected) => console.log('[local] disconnected', disconnected))
 
     this.localConnection.on('error', (error) => console.log('[local] error', error))
 
-    this.localConnection.on('close', (close) => console.log('[local] close', close))
+    this.localConnection.on('close', (close) => {
+      console.log('[local] close', close)
+
+      this.updateConnectionsList()
+    })
   }
 
   updateConnectionsList() {
@@ -32,7 +55,7 @@ class MainConnection {
 
     Object.keys(this.localConnection.connections).map((call) => {
       const label = document.createElement('div')
-      label.textContent = call
+      if (this.localConnection.connections[call].length) label.textContent = call
       this.elements.connections.append(label)
     })
   }
