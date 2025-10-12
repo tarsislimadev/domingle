@@ -1,5 +1,5 @@
 import { Peer } from "https://esm.sh/peerjs@1.5.5?bundle-deps"
-import { ADMIN_ID, PREFIX_ID, TIMEOUT } from './config.js'
+import { getAdminID, getName, TIMEOUT } from './config.js'
 
 class Message {
   name = 'message'
@@ -49,7 +49,6 @@ class WebRTCCall {
 
       this.elements.localVideo.srcObject = this.localStream
       this.elements.startBtn.disabled = true
-      this.elements.callBtn.disabled = false
 
       await this.createLocalConnection()
     } catch (error) {
@@ -58,7 +57,7 @@ class WebRTCCall {
   }
 
   async createLocalConnection() {
-    this.local = new Peer(PREFIX_ID + Date.now())
+    this.local = new Peer(getName(Date.now()))
 
     this.local.on('open', (open) => this.onLocalConnectionOpen(open))
 
@@ -73,11 +72,14 @@ class WebRTCCall {
 
   onLocalConnectionOpen() {
     console.log('[local] open', this.local.id)
+
+    this.elements.callBtn.disabled = false
+
     this.createAdminConnection()
   }
 
   createAdminConnection() {
-    window.adminConnection = this.admin = this.local.connect(ADMIN_ID)
+    window.adminConnection = this.admin = this.local.connect(getAdminID())
 
     this.admin.on('open', (open) => {
       console.log('[admin] open', open)

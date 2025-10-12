@@ -1,5 +1,5 @@
 import { Peer } from "https://esm.sh/peerjs@1.5.5?bundle-deps"
-import { ADMIN_ID } from '../config.js'
+import { getAdminID } from '../config.js'
 
 class MainConnection {
   local = null
@@ -13,7 +13,7 @@ class MainConnection {
   }
 
   createConnection() {
-    window.localConnection = this.local = new Peer(ADMIN_ID)
+    window.localConnection = this.local = new Peer(getAdminID())
 
     this.local.on('open', (open) => {
       console.log('[local] open', open)
