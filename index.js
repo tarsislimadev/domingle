@@ -1,13 +1,28 @@
 import { Peer } from "https://esm.sh/peerjs@1.5.5?bundle-deps"
+import { ADMIN_ID, PREFIX_ID, TIMEOUT } from './config.js'
 
-import { ADMIN_ID, PREFIX_ID } from './config.js'
+class Message {
+  name = 'message'
+  data = null
+  time = Date.now()
+}
+
+class LocalRemoteMessage extends Message {
+  name = 'local-remote'
+
+  constructor(localId, remoteId) {
+    super()
+    this.data = { localId, remoteId }
+  }
+}
 
 class WebRTCCall {
   localStream = null
   remoteStream = null
-  localConnection = null
-  remoteConnection = null
-  adminConnection = null
+  local = null
+  remote = null
+  admin = null
+  connections = []
 
   elements = {
     localVideo: document.getElementById('localVideo'),
@@ -15,18 +30,6 @@ class WebRTCCall {
     startBtn: document.getElementById('startBtn'),
     callBtn: document.getElementById('callBtn'),
   }
-
-  configuration = {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
-      { urls: 'stun:stun2.l.google.com:19302' },
-      { urls: 'stun:stun3.l.google.com:19302' },
-      { urls: 'stun:stun4.l.google.com:19302' },
-    ]
-  }
-
-  TIMEOUT = 2000
 
   constructor() {
     this.setupEventListeners()
@@ -51,57 +54,69 @@ class WebRTCCall {
       await this.createLocalConnection()
     } catch (error) {
       console.log(`Error starting call: ${error.message}`)
-      console.error('Failed to start call')
     }
   }
 
   async createLocalConnection() {
-    this.localConnection = new Peer(PREFIX_ID + Date.now())
+    this.local = new Peer(PREFIX_ID + Date.now())
 
-    this.localConnection.on('open', (open) => this.onLocalConnectionOpen(open))
+    this.local.on('open', (open) => this.onLocalConnectionOpen(open))
 
-    this.localConnection.on('call', (call) => console.log('[local] call', call))
+    this.local.on('call', (call) => console.log('[local] call', call))
 
-    this.localConnection.on('close', (close) => console.log('[local] close', close))
+    this.local.on('close', (close) => console.log('[local] close', close))
 
-    this.localConnection.on('disconnected', (disconnected) => console.log('[local] disconnected', disconnected))
+    this.local.on('disconnected', (disconnected) => console.log('[local] disconnected', disconnected))
 
-    this.localConnection.on('error', (error) => console.log('[local] error', error))
+    this.local.on('error', (error) => console.log('[local] error', error))
   }
 
   onLocalConnectionOpen() {
-    console.log('[local] open', this.localConnection.id)
+    console.log('[local] open', this.local.id)
     this.createAdminConnection()
   }
 
   createAdminConnection() {
-    window.adminConnection = this.adminConnection = this.localConnection.connect(ADMIN_ID)
+    window.adminConnection = this.admin = this.local.connect(ADMIN_ID)
 
-    this.adminConnection.on('open', (open) => {
+    this.admin.on('open', (open) => {
       console.log('[admin] open', open)
 
       setInterval(() => {
-        const local = this.localConnection.id
-        const remote = this.remoteConnection?.id
-
-        console.log({ local, remote })
-
-        if (this.adminConnection.open) {
-          this.adminConnection.send({ local, remote })
+        if (this.admin.open) {
+          this.admin.send(new LocalRemoteMessage(this.local.id, this.remote?.id))
         }
-      }, this.TIMEOUT)
+      }, TIMEOUT)
     })
 
-    this.adminConnection.on('connection', (connection) => console.log('[admin] connection', connection))
+    this.admin.on('data', (data) => {
+      console.log('[admin] data', data)
 
-    this.adminConnection.on('close', (close) => console.log('[admin] close', close))
+      switch (data.name) {
+        case 'connections-list':
+          this.connections = data.data.connections;
+          break
+      }
+    })
 
-    this.adminConnection.on('disconnected', (disconnected) => console.log('[admin] disconnected', disconnected))
+    this.admin.on('close', (close) => console.log('[admin] close', close))
 
-    this.adminConnection.on('error', (error) => console.log('[admin] error', error))
+    this.admin.on('disconnected', (disconnected) => console.log('[admin] disconnected', disconnected))
+
+    this.admin.on('error', (error) => console.log('[admin] error', error))
   }
 
-  startRemoteCall() { }
+  startRemoteCall(index = 0) {
+    this.remote = this.local.call(this.connections[index], this.localStream)
+
+    this.remote.on('open', (open) => console.log('[remote] open', open))
+
+    this.remote.on('error', (error) => console.log('[remote] error', error))
+
+    this.remote.on('close', (close) => console.log('[remote] close', close))
+
+    this.remote.on('stream', (stream) => console.log('[remote] stream', stream))
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
