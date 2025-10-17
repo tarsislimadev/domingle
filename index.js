@@ -71,6 +71,8 @@ class WebRTCCall {
   }
 
   onLocalConnectionOpen() {
+    console.log('createLocalConnection')
+    
     console.log('[local] open', this.local.id)
 
     this.elements.callBtn.disabled = false
