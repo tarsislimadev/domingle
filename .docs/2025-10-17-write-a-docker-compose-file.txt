@@ -1,0 +1,109 @@
+> write a Docker Compose file 
+
+● I'll create a Docker Compose file for your project. Let me first explore the codebase to understand what services you
+need.
+
+● Read(package.json)
+⎿  Error reading file
+
+● Search(pattern: "**/Dockerfile")
+⎿  Found 0 files 
+
+● Search(pattern: "**/*.config.js")
+⎿  Found 0 files 
+
+● Bash(ls -la)
+⎿  total 48                                         
+drwxr-xr-x 4 virgem1 virgem1 4096 Oct 14 19:49 .
+drwxr-xr-x 7 virgem1 virgem1 4096 Oct 17 16:23 ..
+… +10 lines (ctrl+o to expand)
+
+● Read(README.md)
+⎿  Read 64 lines
+
+● Read(config.js)
+⎿  Read 16 lines
+
+● Read(requirements.txt)
+⎿  Read 2 lines
+
+● Bash(ls -la admin/)
+⎿  total 16                                         
+drwxr-xr-x 2 virgem1 virgem1 4096 Oct 14 19:49 .
+drwxr-xr-x 4 virgem1 virgem1 4096 Oct 14 19:49 ..
+… +2 lines (ctrl+o to expand)
+
+● Read(index.html)
+⎿  Read 36 lines
+
+● Now I understand this is a WebRTC-based random video chat application that uses PeerJS. I'll create a Docker Compose
+file that sets up both a web server for the static files and a PeerJS signaling server.
+
+● Write(docker-compose.yml)
+⎿  Wrote 35 lines to docker-compose.yml                
+version: '3.8'
+services:
+  # Nginx web server for serving the static frontend
+  web:
+    image: nginx:alpine
+    container_name: domingle-web
+    ports:
+      - "8080:80"
+    volumes:
+… +25 lines (ctrl+o to expand)
+
+● Write(nginx.conf)
+⎿  Wrote 36 lines to nginx.conf                                                                                      
+server {
+    listen 80;
+    server_name localhost;
+    root /usr/share/nginx/html;
+    index index.html;
+    # Enable gzip compression
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml
+text/javascript;
+… +26 lines (ctrl+o to expand)
+
+● Write(.dockerignore)
+⎿  Wrote 7 lines to .dockerignore
+.git
+.gitignore
+README.md
+PROMPT.md
+docker-compose.yml
+.dockerignore
+
+● I've created a Docker Compose setup for your domingle video chat application. Here's what was created:
+
+docker-compose.yml
+- web service: Nginx server to serve your static files (HTML, CSS, JS) on port 8080
+- peerjs service: PeerJS signaling server for WebRTC connections on port 9000
+- Both services are connected via a private network
+
+nginx.conf
+- Configured to serve static files from the root directory
+- Includes gzip compression for better performance
+- Proxies /peerjs requests to the PeerJS server for WebRTC signaling
+- Optimized caching for static assets
+
+.dockerignore
+- Excludes unnecessary files from the Docker context
+
+To use it:
+
+# Start the services
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop the services
+docker compose down
+
+The application will be available at:
+- Web app: http://localhost:8080
+- PeerJS server: http://localhost:9000
+
+Note: You may need to update your JavaScript code to point to the correct PeerJS server URL (http://localhost:9000) if
+it's currently hardcoded to use the public PeerJS cloud service.
