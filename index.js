@@ -1,5 +1,5 @@
 import { Peer } from "https://esm.sh/peerjs@1.5.5?bundle-deps"
-import { getAdminID, getName, TIMEOUT } from './config.js'
+import { getAdminID, getName, TIMEOUT, peer_config } from './config.js'
 
 class Message {
   name = 'message'
@@ -57,7 +57,7 @@ class WebRTCCall {
   }
 
   async createLocalConnection() {
-    this.local = new Peer(getName(Date.now()))
+    this.local = new Peer(getName(Date.now()), peer_config)
 
     this.local.on('open', (open) => this.onLocalConnectionOpen(open))
 

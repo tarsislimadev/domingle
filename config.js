@@ -13,3 +13,15 @@ console.log('ADMIN', getAdminID())
 console.log('NAME', getName('name'))
 
 export const TIMEOUT = 2000
+
+export const peer_config = {
+  config: {
+    'iceServers': [
+      {
+        'urls': 'stun:0.0.0.0:4224'
+      }
+    ],
+    'sdpSemantics': 'unified-plan'
+  }
+}
+
