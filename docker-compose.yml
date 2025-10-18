@@ -1,6 +1,13 @@
 version: '3.8'
 
 services:
+  nats:
+    image: nats-streaming
+    ports:
+      - 4224:4222
+      - 8222:8222
+    command: -cluster_id my-cluster
+
   # Nginx web server for serving the static frontend
   web:
     image: nginx:alpine
