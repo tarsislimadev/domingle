@@ -6,7 +6,7 @@ export const getName = (suffix) => [getAppName(), suffix].join('-')
 
 export const getAdminID = () => getName('admin')
 
-export const TIMEOUT = 2000
+export const TIMEOUT = 1000
 
 export const peer_config = {
   config: {
@@ -21,3 +21,8 @@ export const peer_config = {
 
 console.log('ADMIN', getAdminID())
 console.log('NAME', getName('name'))
+
+export const MESSAGES = {
+  CONNECTIONS_LIST: 'connections-list',
+  FREE: 'free',
+}
