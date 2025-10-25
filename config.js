@@ -9,17 +9,18 @@ export const getAdminID = () => getName('admin')
 export const TIMEOUT = 1000
 
 export const peer_config = {
-  config: {
-    'iceServers': [
-      {
-        'urls': `stun:${getHostname()}:4224`
-      }
-    ],
-    'sdpSemantics': 'unified-plan'
-  }
+  // config: {
+  //   'iceServers': [
+  //     {
+  //       'urls': `stun:${getHostname()}:4224`
+  //     }
+  //   ],
+  //   'sdpSemantics': 'unified-plan'
+  // }
 }
 
 console.log('ADMIN', getAdminID())
+
 console.log('NAME', getName('name'))
 
 export const MESSAGES = {
